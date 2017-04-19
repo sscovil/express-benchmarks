@@ -75,6 +75,8 @@ v1.delete('/customers/:id', (req, res, next) => {
  * Handle Error
  */
 v1.use((err, req, res, next) => {
+  console.log(err);
+
   switch(err.name) {
     case 'NotFound':
       return res.sendStatus(404);
