@@ -8,17 +8,23 @@ const v2 = express.Router();
 
 v2.use(bodyParser.json());
 
+v2.param('id', (req, res, next, id) => {
+  req.params.id = Number(id);
+  next();
+});
+
 /**
  * Create
  */
 v2.post('/customers', (req, res, next) => {
-  let customerService = new CustomerService(req.ctx);
+  let customerService = new CustomerService(res.locals.ctx);
   let attrs = req.body;
 
   delete attrs.id;
 
   customerService.create(attrs)
-    .then((result) => res.json(result))
+    .then((result) => res.locals.result = result)
+    .then(() => next())
     .catch((err) => next(err));
 });
 
@@ -26,11 +32,12 @@ v2.post('/customers', (req, res, next) => {
  * Search
  */
 v2.get('/customers', (req, res, next) => {
-  let customerService = new CustomerService(req.ctx);
+  let customerService = new CustomerService(res.locals.ctx);
   let params = req.query;
 
   customerService.filter(params)
-    .then((result) => res.json(result))
+    .then((result) => res.locals.result = result)
+    .then(() => next())
     .catch((err) => next(err));
 });
 
@@ -38,11 +45,12 @@ v2.get('/customers', (req, res, next) => {
  * Get
  */
 v2.get('/customers/:id', (req, res, next) => {
-  let customerService = new CustomerService(req.ctx);
-  let id = Number(req.params.id);
+  let customerService = new CustomerService(res.locals.ctx);
+  let id = req.params.id;
 
   customerService.get(id)
-    .then((result) => res.json(result))
+    .then((result) => res.locals.result = result)
+    .then(() => next())
     .catch((err) => next(err));
 });
 
@@ -50,12 +58,13 @@ v2.get('/customers/:id', (req, res, next) => {
  * Update
  */
 v2.put('/customers/:id', (req, res, next) => {
-  let customerService = new CustomerService(req.ctx);
+  let customerService = new CustomerService(res.locals.ctx);
   let attrs = req.body;
-  let id = Number(req.params.id);
+  let id = req.params.id;
 
   customerService.update(id, attrs)
-    .then((result) => res.json(result))
+    .then((result) => res.locals.result = result)
+    .then(() => next())
     .catch((err) => next(err));
 });
 
@@ -63,30 +72,13 @@ v2.put('/customers/:id', (req, res, next) => {
  * Delete
  */
 v2.delete('/customers/:id', (req, res, next) => {
-  let customerService = new CustomerService(req.ctx);
-  let id = Number(req.params.id);
+  let customerService = new CustomerService(res.locals.ctx);
+  let id = req.params.id;
 
   customerService.remove(id)
-    .then((result) => res.sendStatus(204))
+    .then((result) => res.locals.result = result)
+    .then(() => next())
     .catch((err) => next(err));
-});
-
-/**
- * Handle Error
- */
-v2.use((err, req, res, next) => {
-  console.log(err);
-
-  switch(err.name) {
-    case 'NotFound':
-      return res.sendStatus(404);
-
-    case 'NonUniqueId':
-      return res.sendStatus(400);
-
-    default:
-      return res.sendStatus(500);
-  }
 });
 
 module.exports = v2;

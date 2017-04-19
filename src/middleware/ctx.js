@@ -2,16 +2,14 @@
 
 const db = require('../database/memoryDB');
 
+const MIN_LATENCY = 100;
+const MAX_LATENCY = 1000;
+
 module.exports = (req, res, next) => {
-  let min = 100;
-  let max = 1000;
-
-  if (!req.ctx) {
-    req.ctx = {};
-  }
-
-  req.ctx.db = db;
-  req.ctx.randomLatency = () => Math.floor(Math.random() * (max - min)) + min;
+  res.locals.ctx = {
+    db: db,
+    randomLatency: () => Math.floor(Math.random() * (MAX_LATENCY - MIN_LATENCY)) + MIN_LATENCY
+  };
 
   next();
 };
